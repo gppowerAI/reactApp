@@ -1083,9 +1083,6 @@ const FeaturesData = [
 testUser();
 
 function Diagnosis(){
-    /*const divref = useRef();
-    const formref = useRef();*/
-    
     const [errorValue, setErrorValue] = useState(''),
           [loggedClient, setLoggedValue] = useState(false),
           [divInner, setDiv] = useState(
@@ -1116,7 +1113,7 @@ function Diagnosis(){
             function submit(e){
                 e.preventDefault();
                 let form = e.target;
-                
+                console.log(form);
                 let select = form.querySelectorAll('select')[0],
                     input = form.querySelector('input');
                 
@@ -1143,14 +1140,17 @@ function Diagnosis(){
             const changeSelect = function(e){
                 if(['text', 'number'].includes(e.target.value)){
                     let parent = e.target.parentElement.parentElement;
-                    if(!parent)
-                        return;
-                    
-                    let inp = parent.querySelector('input');
-                    if(!inp)
-                        return;
+                    let inp = parent.querySelector('input'),
+                        btn = parent.querySelector('button'),
+                        select = parent.querySelectorAll('select')[0];
                     
                     inp.type = e.target.value;
+                    if(btn && select){
+                        if(inp.value && inp.value.length && select.value && select.value.length)
+                            btn.removeAttribute('disabled')
+                        else if(btn)
+                            btn.setAttribute('disabled', '');
+                    }
                 }
             }
             
@@ -1158,19 +1158,16 @@ function Diagnosis(){
                 let value = e.target.value;
                 
                 let parent = e.target.parentElement.parentElement;
-                if(!parent)
-                    return;
-                
                 let select = parent.querySelectorAll('select')[0],
                     btn = parent.querySelector('button');
                 
                 if(!select || !btn)
                     return;
                 
-                if(value && value.length && !select.value.length)
-                    btn.setAttribute('disabled', false);
+                if(value && value.length && select.value && select.value.length)
+                    btn.removeAttribute('disabled');
                 else if(btn)
-                    btn.setAttribute('disabled', true);
+                    btn.setAttribute('disabled', '');
             }
             
             setDiv(
@@ -1179,11 +1176,11 @@ function Diagnosis(){
                         <select>
                             {
                                 FeaturesData.map(f => <option key={f} value={f}>{f}</option>)
-                                                 }
+                            }
                         </select>
                     </div>
                     <div className="select">
-                        <select value="text" onChange={changeSelect}>
+                        <select onChange={changeSelect}>
                             <option value="text">Text</option>
                             <option value="number">Number</option>
                         </select>
@@ -1193,7 +1190,7 @@ function Diagnosis(){
                         {/*<span className="omrs-input-label">feature value</span>*/}
                         <span className="omrs-input-helper">View list from the top left by chosing "view all features"</span>
                     </label>
-                    <button disabled type="submit"></button>
+                    <button disabled type="submit" className="Analysebtn">Add</button>
                 </form>
             )
         }
@@ -1294,9 +1291,6 @@ function Diagnosis(){
         }
     }
     
-    /*Session.div = divref;
-    Session.form = formref;*/
-    const json = {name: 'gift', surname: 'masimula'}
     return(
         <div className="diagnosis">
             <div className='loader' style={loader}></div>
