@@ -1142,7 +1142,7 @@ function Diagnosis(){
             
             const changeSelect = function(e){
                 if(['text', 'number'].includes(e.target.value)){
-                    let parent = e.target.parentElement;
+                    let parent = e.target.parentElement.parentElement;
                     if(!parent)
                         return;
                     
@@ -1157,7 +1157,7 @@ function Diagnosis(){
             const changeInput = function(e){
                 let value = e.target.value;
                 
-                let parent = e.target.parentElement;
+                let parent = e.target.parentElement.parentElement;
                 if(!parent)
                     return;
                 
@@ -1188,10 +1188,10 @@ function Diagnosis(){
                             <option value="number">Number</option>
                         </select>
                     </div>
-                    <label class="omrs-input-underlined">
+                    <label className="omrs-input-underlined">
                         <input type='text' onChange={changeInput} required placeholder="Feature Value" />
-                        {/*<span class="omrs-input-label">feature value</span>*/}
-                        <span class="omrs-input-helper">View list from the top left by chosing "view all features"</span>
+                        {/*<span className="omrs-input-label">feature value</span>*/}
+                        <span className="omrs-input-helper">View list from the top left by chosing "view all features"</span>
                     </label>
                     <button disabled type="submit"></button>
                 </form>
