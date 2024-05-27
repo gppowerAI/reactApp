@@ -1,7 +1,7 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, Fragment} from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-var SessionID = "C8hvTnrj55uYxr6g",
+var SessionID = "AtnQGSp1cFaYxT1X",
       uri = 'https://api.endlessmedical.com/v1/dx/';
 
 const Session = {
@@ -15,28 +15,39 @@ const Session = {
     logged: function(){},
 }
 
+const Response = async function(response){
+    if(response.status >= 300)
+        return {status: 'error', error: 'server error'};
+    
+    const data = await response.json();
+    //console.log(data)
+    data.status = response.status == 200 ? 'ok' : 'error';
+    return data;
+}
+
 const startLogg = async function(){
     var {URI : uri, SessionID : sessionID} = Session,
           apiData = {};
     
-    var response = await fetch(uri+'InitSession', {
+    var response = await Response(await fetch(uri+'InitSession', {
         method: 'GET'
-    })
-    
+    }))
+    //console.log(response)
     if(response.status != 'ok' || typeof response.SessionID != 'string' || !response.SessionID)
         throw response.error;
     
-    sessionID = Session.SessionID = response.SessionID;
-    
+    Session.SessionID = response.SessionID;
+    Session.logged(true);
+    console.log(Session.SessionID);
     AcceptTermsOfUse();
 }
 
 const AcceptTermsOfUse = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}AcceptTermsOfUse?SessionID=${sessionID}&passphrase=I have read, understood and I accept and agree to comply with the Terms of Use of EndlessMedicalAPI and Endless Medical services. The Terms of Use are available on endlessmedical.com`, {
+    let response = await Response(await fetch(`${uri}AcceptTermsOfUse?SessionID=${sessionID}&passphrase=I have read, understood and I accept and agree to comply with the Terms of Use of EndlessMedicalAPI and Endless Medical services. The Terms of Use are available on endlessmedical.com`, {
         method: 'POST'
-    })
+    }))
     
     if(response.status != 'ok')
         return ErrorHandle(response.error);
@@ -61,31 +72,37 @@ const ErrorHandle = function(error){
 const UpdateFeature = async function(name, value, cb){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}UpdateFeature?SessionID=${sessionID}&name=${name}&value=${value}`,{
+    let response = await Response(await fetch(`${uri}UpdateFeature?SessionID=${sessionID}&name=${name}&value=${value}`,{
         method: 'POST'
-    });
+    }));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
-    cb(true)
+    if(cb)
+        cb(true)
 }
 
 const DeleteFeature = async function(name, cb){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}DeleteFeature?SessionID=${sessionID}&name=${name}`,{
+    let response = await Response(await fetch(`${uri}DeleteFeature?SessionID=${sessionID}&name=${name}`,{
         method: 'POST'
-    });
+    }));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
-    cb(true)
+    if(cb)
+        cb(true)
 }
 
 const GetFeatures = async function(cb){
@@ -94,32 +111,36 @@ const GetFeatures = async function(cb){
     
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetFeatures`);
+    let response = await Response(await fetch(`${uri}GetFeatures`));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
-    cb(response.data);
+    if(cb)
+        cb(response.data);
 }
 
 const GetUseDefaultValues = async function(cb){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetUseDefaultValues?SessionID=${sessionID}`,{
-        method: 'POST'
-    });
+    let response = await Response(await fetch(`${uri}GetUseDefaultValues?SessionID=${sessionID}`));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
     if(response.value != true)
         return SetUseDefaultValues(true, cb);
     
-    cb(true);
+    if(cb)
+        cb(true);
 }
 
 const SetUseDefaultValues = async function(value, cb){
@@ -128,20 +149,25 @@ const SetUseDefaultValues = async function(value, cb){
     
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}SetUseDefaultValues?SessionID=${sessionID}&value=${value}`);
+    let response = await Response(await fetch(`${uri}SetUseDefaultValues?SessionID=${sessionID}&value=${value}`, {
+        method: 'POST'
+    }));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
-    cb(true);
+    if(cb)
+        cb(true);
 }
 
 const GetSuggestedTests = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetSuggestedTests?SessionID=${sessionID}&TopDiseasesToTake=20`);
+    let response = await Response(await fetch(`${uri}GetSuggestedTests?SessionID=${sessionID}&TopDiseasesToTake=20`));
     
     if(response.status != 200)
         return ErrorHandle(response.error);
@@ -152,7 +178,7 @@ const GetSuggestedTests = async function(){
 const GetSuggestedSpecializations = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetSuggestedSpecializations?SessionID=${sessionID}&&NumberOfResults=20`);
+    let response = await Response(await fetch(`${uri}GetSuggestedSpecializations?SessionID=${sessionID}&&NumberOfResults=20`));
     
     if(response.status != 200)
         return ErrorHandle(response.error);
@@ -163,7 +189,7 @@ const GetSuggestedSpecializations = async function(){
 const GetSuggestedFeatures_PatientProvided = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetSuggestedFeatures_PatientProvided?SessionID=${sessionID}&&TopDiseasesToTake=20`);
+    let response = await Response(await fetch(`${uri}GetSuggestedFeatures_PatientProvided?SessionID=${sessionID}&&TopDiseasesToTake=20`));
     
     if(response.status != 200)
         return ErrorHandle(response.error);
@@ -174,7 +200,7 @@ const GetSuggestedFeatures_PatientProvided = async function(){
 const GetSuggestedFeatures_PhysicianProvided = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}GetSuggestedFeatures_PhysicianProvided?SessionID=${sessionID}&&TopDiseasesToTake=20`);
+    let response = await Response(await fetch(`${uri}GetSuggestedFeatures_PhysicianProvided?SessionID=${sessionID}&&TopDiseasesToTake=20`));
     
     if(response.status != 200)
         return ErrorHandle(response.error);
@@ -185,31 +211,34 @@ const GetSuggestedFeatures_PhysicianProvided = async function(){
 const DIAnalyze = async function(cb){
     const {URI : uri, SessionID : sessionID} = Session;
     
-    let response = await fetch(`${uri}Analyze?SessionID=${sessionID}&&NumberOfResults=20&ResponseFormat=application/json`);
+    let response = await Response(await fetch(`${uri}Analyze?SessionID=${sessionID}&&NumberOfResults=20&ResponseFormat=application/json`));
     
     if(response.status != 'ok'){
-        cb();
+        if(cb)
+            cb();
+        
         return ErrorHandle(response.error);
     }
     
-    console.log(Tests, SuggestedFeatures, SuggestedFeaturesPA, SuggestedFeaturesPH);
-    console.log(response);
+    response.status = 'diagnose success';
+    if(cb)
+        cb(response);
 }
 
 const testUser = async function(){
     const {URI : uri, SessionID : sessionID} = Session;
-    
-    let response = await fetch(`${uri}GetUseDefaultValues?SessionID=${sessionID}`,{
-        method: 'POST'
-    });
-    
+    //console.log(uri, sessionID)
+    let response = await Response(await fetch(`${uri}GetUseDefaultValues?SessionID=${sessionID}`,{
+        method: 'GET'
+    }));
+    //console.log(response);
     if(response.status != 'ok')
-        return testUser();
+        startLogg();
+    else
+        Session.logged(true);
     
-    Session.logged(true);
-    return setTimeout(testUser, 1000);
+    return setTimeout(testUser, 10000);
 }
-//testUser();
 
 const FeaturesData = [
     "Age",
@@ -1051,10 +1080,9 @@ const FeaturesData = [
     "ElectrocardiogramHypercalcemia"
   ]
 
+testUser();
+
 function Diagnosis(){
-    console.log('diag')
-    //return <div className="">hi</div>;
-    
     /*const divref = useRef();
     const formref = useRef();*/
     
@@ -1077,11 +1105,11 @@ function Diagnosis(){
         
         if(value == 'features'){
             setDiv(
-                <ul>
+                <ol>
                     {
-                        FeaturesData.map(f => <li key={f}>{f}</li>)
+                      FeaturesData.map(f => <li key={f}><span>{f}</span></li>)
                     }
-                </ul>
+              </ol>
             )
         }
         else if(value == '+features'){
@@ -1226,15 +1254,29 @@ function Diagnosis(){
                         Session.error("failed to analyse");
                     else
                         setDiv(
-                            <div className="code">
-                                <pre>
-                                    <code>
-                                        {
-                                            JSON.stringify(r)
-                                        }
-                                    </code>
-                                </pre>
-                            </div>
+                            <Fragment>
+                                <form onSubmit={submit}>
+                                    <p>Analyse your data? yes by submiting</p>
+                                    <button type="submit" className="Analysebtn">Analyse</button>
+                                </form>
+                                <div className="code">
+                                    <pre>
+                                        <code>
+                                            <ol>
+                                            {
+                                                Object.keys(r).map(k=>{
+                                                    let a = r[k],
+                                                        isA = Array.isArray(a);
+                                                    console.log(a, isA);
+                                                    let d = a.length ? (isA ? a.join(', ') : a) : 'no '+k+' found';
+                                                    return <li key={k}><span>{k}</span><span>{d}</span></li>
+                                                })
+                                            }
+                                            </ol>
+                                        </code>
+                                    </pre>
+                                </div>
+                            </Fragment>
                         );
                 })
             }

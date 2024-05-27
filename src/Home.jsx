@@ -71,6 +71,8 @@ function HomePage(){
 
                 if(response.status == 200){
                     // redirect to home page
+                    localStorage.removeItem('name');
+                    localStorage.removeItem('token');
                     alert('Successfully logged out');
                     navigate('/login', {replace: true});
 
